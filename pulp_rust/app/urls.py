@@ -31,7 +31,11 @@ urlpatterns = [
         CargoDownloadApiView.as_view(),
         name="cargo-download-api",
     ),
-    path(CRATES_IO_URL + "config.json", IndexRoot.as_view({"get": "retrieve"}), name="index-root"),
+    path(
+        CRATES_IO_URL + "config.json",
+        IndexRoot.as_view({"get": "retrieve"}),
+        name="index-root",
+    ),
     path(
         CRATES_IO_URL + "<path:path>",
         CargoIndexApiViewSet.as_view({"get": "retrieve"}),

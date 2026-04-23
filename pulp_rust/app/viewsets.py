@@ -19,9 +19,9 @@ from pulpcore.plugin.viewsets import NamedModelViewSet, RemoteFilter
 from . import models, serializers, tasks
 
 
-class RustContentFilter(core.ContentFilter):
+class RustPackageFilter(core.ContentFilter):
     """
-    FilterSet for RustContent (Cargo packages).
+    FilterSet for RustPackage (Cargo packages).
 
     Provides filtering capabilities for package name, version, and checksum.
     """
@@ -39,7 +39,7 @@ class RustContentFilter(core.ContentFilter):
     rust_version = CharFilter(field_name="rust_version")
 
     class Meta:
-        model = models.RustContent
+        model = models.RustPackage
         fields = [
             "name",
             "vers",
@@ -48,9 +48,9 @@ class RustContentFilter(core.ContentFilter):
         ]
 
 
-class RustContentViewSet(core.ReadOnlyContentViewSet):
+class RustPackageViewSet(core.ReadOnlyContentViewSet):
     """
-    A read-only ViewSet for RustContent (Cargo package versions).
+    A read-only ViewSet for RustPackage (Cargo package versions).
 
     Content is created via ``cargo publish`` (the Cargo registry API),
     not through this viewset.
@@ -59,9 +59,9 @@ class RustContentViewSet(core.ReadOnlyContentViewSet):
     """
 
     endpoint_name = "packages"
-    queryset = models.RustContent.objects.prefetch_related("dependencies").all()
-    serializer_class = serializers.RustContentSerializer
-    filterset_class = RustContentFilter
+    queryset = models.RustPackage.objects.prefetch_related("dependencies").all()
+    serializer_class = serializers.RustPackageSerializer
+    filterset_class = RustPackageFilter
 
     DEFAULT_ACCESS_POLICY = {
         "statements": [
@@ -330,7 +330,7 @@ class RustRepositoryViewSet(core.RepositoryViewSet, ModifyRepositoryActionMixin,
         Add to the repository any new content that was cached using the remote since the last
         repository version was created.
 
-        The ``repository`` field has to be provided.
+        The `repository` field has to be provided.
         """
         serializer = serializers.RepositoryAddCachedContentSerializer(
             data=request.data, context={"request": request, "repository_pk": pk}

@@ -100,7 +100,8 @@ def main(options: argparse.Namespace, template_config: dict[str, t.Any]) -> int:
     # Warning: This will not work if branch names contain "/" but we don't really care here.
     heads = [h.split("/")[-1] for h in repo.git.branch("--remote").split("\n")]
     available_branches = sorted(
-        {h for h in heads if re.fullmatch(RELEASE_BRANCH_REGEX, h)}, key=lambda ver: Version(ver)
+        {h for h in heads if re.fullmatch(RELEASE_BRANCH_REGEX, h)},
+        key=lambda ver: Version(ver),
     ) + [DEFAULT_BRANCH]
 
     branches = options.branches
@@ -145,12 +146,20 @@ def main(options: argparse.Namespace, template_config: dict[str, t.Any]) -> int:
 
             last_tag = repo.git.describe("--tags", "--abbrev=0", f"{remote}/{branch}")
             req_txt_diff = repo.git.diff(
-                f"{last_tag}", f"{remote}/{branch}", "--name-only", "--", "requirements.txt"
+                f"{last_tag}",
+                f"{remote}/{branch}",
+                "--name-only",
+                "--",
+                "requirements.txt",
             )
             if req_txt_diff:
                 reasons.append("requirements.txt")
             pyproject_diff = repo.git.diff(
-                f"{last_tag}", f"{remote}/{branch}", "--name-only", "--", "pyproject.toml"
+                f"{last_tag}",
+                f"{remote}/{branch}",
+                "--name-only",
+                "--",
+                "pyproject.toml",
             )
             if pyproject_diff:
                 reasons.extend(check_pyproject_dependencies(repo, last_tag, f"{remote}/{branch}"))

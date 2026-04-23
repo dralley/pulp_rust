@@ -63,6 +63,6 @@ For understanding the Cargo registry protocol, refer to the upstream documentati
 ## Common pitfalls
 
 - **Cargo.toml is authoritative during publish**: When a crate is published, dependencies are extracted from the `Cargo.toml` inside the `.crate` tarball, NOT from the JSON metadata submitted alongside it. This is an intentional security measure (see rust-lang/cargo#14492).
-- **RustDependency is NOT a Content type**: Unlike `RustContent` and `RustPackageYank`, `RustDependency` is a regular Django model with an FK to `RustContent`. Do not treat it as a Pulpcore Content subclass.
+- **RustDependency is NOT a Content type**: Unlike `RustPackage` and `RustPackageYank`, `RustDependency` is a regular Django model with an FK to `RustPackage`. Do not treat it as a Pulpcore Content subclass.
 - **Django app label is `rust`, not `pulp_rust`**: When running Django management commands (e.g. `makemigrations`), use the app label `rust`. The Python package is `pulp_rust` but the Django app label is set to `rust` in `PulpRustPluginAppConfig`.
 

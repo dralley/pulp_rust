@@ -65,9 +65,9 @@ class TestParseCrateRelativePath:
 
 class TestGetRemoteArtifactContentType:
     def test_crate_file(self):
-        from pulp_rust.app.models import RustContent
+        from pulp_rust.app.models import RustPackage
 
-        assert RustRemote.get_remote_artifact_content_type("serde/serde-1.0.0.crate") is RustContent
+        assert RustRemote.get_remote_artifact_content_type("serde/serde-1.0.0.crate") is RustPackage
 
     def test_non_crate_file(self):
         assert RustRemote.get_remote_artifact_content_type("se/rd/serde") is None

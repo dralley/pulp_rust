@@ -99,7 +99,7 @@ def test_pull_through_on_demand_creates_content(
     rust_content_api_client,
     cargo_registry_url,
 ):
-    """on_demand pull-through should create a RustContent record and cache the artifact."""
+    """on_demand pull-through should create a RustPackage record and cache the artifact."""
     remote = rust_remote_factory(url=CRATES_IO_URL, policy="on_demand")
     repository = rust_repo_factory(remote=remote.pulp_href)
     distribution = rust_distribution_factory(
@@ -111,7 +111,7 @@ def test_pull_through_on_demand_creates_content(
     downloaded = download_file(pulp_unit_url)
     assert downloaded.response_obj.status == 200
 
-    # A RustContent record should have been created
+    # A RustPackage record should have been created
     content_response = rust_content_api_client.list(name="itoa", vers="1.0.0")
     assert content_response.count == 1
 
@@ -155,7 +155,7 @@ def test_pull_through_streamed_no_content_created(
     rust_content_api_client,
     cargo_registry_url,
 ):
-    """streamed: pull-through should NOT create a RustContent record."""
+    """streamed: pull-through should NOT create a RustPackage record."""
     remote = rust_remote_factory(url=CRATES_IO_URL, policy="streamed")
     repository = rust_repo_factory(remote=remote.pulp_href)
     distribution = rust_distribution_factory(
@@ -167,7 +167,7 @@ def test_pull_through_streamed_no_content_created(
     downloaded = download_file(pulp_unit_url)
     assert downloaded.response_obj.status == 200
 
-    # No RustContent record should have been created
+    # No RustPackage record should have been created
     content_response = rust_content_api_client.list(name="itoa", vers="1.0.0")
     assert content_response.count == 0
 

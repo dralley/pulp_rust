@@ -50,7 +50,7 @@ def test_download_content(
     repository = rust_repo_api_client.read(repository.pulp_href)
     assert not repository.latest_version_href.endswith("/versions/0/")
 
-    # Check that Pulp created a RustContent record
+    # Check that Pulp created a RustPackage record
     content_response = rust_content_api_client.list(name="itoa", vers="1.0.0")
     assert content_response.count == 1
 

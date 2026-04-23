@@ -9,7 +9,7 @@ from pulpcore.plugin.stages import (
     Stage,
 )
 
-from pulp_rust.app.models import RustContent, RustRemote
+from pulp_rust.app.models import RustPackage, RustRemote
 
 log = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ class RustFirstStage(Stage):
         raise NotImplementedError("Not implemented")
 
         for entry in self.read_my_metadata_file_somehow(result.path):
-            unit = RustContent(entry)  # make the content unit in memory-only
+            unit = RustPackage(entry)  # make the content unit in memory-only
             artifact = Artifact(entry)  # make Artifact in memory-only
             da = DeclarativeArtifact(
                 artifact,

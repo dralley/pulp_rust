@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from pulpcore.plugin.models import Artifact, ContentArtifact
 from pulpcore.plugin.tasking import aadd_and_remove
 
-from pulp_rust.app.models import RustContent, RustDependency, RustRepository
+from pulp_rust.app.models import RustDependency, RustPackage, RustRepository
 from pulp_rust.app.utils import (
     canonicalize_crate_name,
     extract_cargo_toml,
@@ -52,7 +52,7 @@ async def apublish_package(repository_pk, metadata, crate_path):
     """
     Publish a crate to a repository.
 
-    Creates the Artifact, RustContent, ContentArtifact, and RustDependency records,
+    Creates the Artifact, RustPackage, ContentArtifact, and RustDependency records,
     then adds the content to a new repository version.
 
     Args:
@@ -98,7 +98,7 @@ async def apublish_package(repository_pk, metadata, crate_path):
     # multiple repositories.  Including cksum in the lookup allows different
     # crates with the same name+version (e.g. a private crate shadowing a
     # public one) to coexist as separate content objects within a domain.
-    content = await RustContent.objects.filter(
+    content = await RustPackage.objects.filter(
         name=name,
         vers=vers,
         cksum=cksum,
@@ -106,7 +106,7 @@ async def apublish_package(repository_pk, metadata, crate_path):
     ).afirst()
 
     if content is None:
-        content = RustContent(
+        content = RustPackage(
             name=name,
             canonical_name=canonical_name,
             vers=vers,

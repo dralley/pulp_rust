@@ -51,7 +51,9 @@ class RustDependencySerializer(serializers.ModelSerializer):
     )
 
     optional = serializers.BooleanField(
-        default=False, required=False, help_text=_("Whether this is an optional dependency")
+        default=False,
+        required=False,
+        help_text=_("Whether this is an optional dependency"),
     )
 
     default_features = serializers.BooleanField(
@@ -102,9 +104,9 @@ class RustDependencySerializer(serializers.ModelSerializer):
         )
 
 
-class RustContentSerializer(core_serializers.SingleArtifactContentSerializer):
+class RustPackageSerializer(core_serializers.SingleArtifactContentSerializer):
     """
-    Serializer for RustContent (Cargo package version).
+    Serializer for RustPackage (Cargo package version).
 
     Represents a single version of a Rust crate as defined in the Cargo registry
     index specification. Includes package metadata, dependencies, and features.
@@ -115,7 +117,9 @@ class RustContentSerializer(core_serializers.SingleArtifactContentSerializer):
     vers = serializers.CharField(help_text=_("Semantic version string (SemVer 2.0.0)"))
 
     dependencies = RustDependencySerializer(
-        many=True, required=False, help_text=_("List of dependencies for this package version")
+        many=True,
+        required=False,
+        help_text=_("List of dependencies for this package version"),
     )
 
     cksum = serializers.CharField(help_text=_("SHA256 checksum of the .crate file (tarball)"))
@@ -143,7 +147,9 @@ class RustContentSerializer(core_serializers.SingleArtifactContentSerializer):
     )
 
     v = serializers.IntegerField(
-        default=1, required=False, help_text=_("Schema version of the index entry format")
+        default=1,
+        required=False,
+        help_text=_("Schema version of the index entry format"),
     )
     rust_version = serializers.CharField(
         allow_null=True,
@@ -152,7 +158,7 @@ class RustContentSerializer(core_serializers.SingleArtifactContentSerializer):
     )
 
     def create(self, validated_data):
-        """Create RustContent and related dependencies."""
+        """Create RustPackage and related dependencies."""
         dependencies_data = validated_data.pop("dependencies", [])
         validated_data["canonical_name"] = canonicalize_crate_name(validated_data["name"])
         content = super().create(validated_data)
@@ -164,7 +170,7 @@ class RustContentSerializer(core_serializers.SingleArtifactContentSerializer):
         return content
 
     def update(self, instance, validated_data):
-        """Update RustContent and related dependencies."""
+        """Update RustPackage and related dependencies."""
         dependencies_data = validated_data.pop("dependencies", None)
 
         instance = super().update(instance, validated_data)
@@ -189,7 +195,7 @@ class RustContentSerializer(core_serializers.SingleArtifactContentSerializer):
             "v",
             "rust_version",
         )
-        model = models.RustContent
+        model = models.RustPackage
 
 
 class RustRemoteSerializer(core_serializers.RemoteSerializer):
@@ -214,7 +220,6 @@ class RustRepositorySerializer(core_serializers.RepositorySerializer):
     A Serializer for RustRepository.
 
     Add any new fields if defined on RustRepository.
-    Similar to the example above, in RustContentSerializer.
     Additional validators can be added to the parent validators list
 
     For example::
@@ -234,7 +239,6 @@ class RustDistributionSerializer(core_serializers.DistributionSerializer):
     A Serializer for RustDistribution.
 
     Add any new fields if defined on RustDistribution.
-    Similar to the example above, in RustContentSerializer.
     Additional validators can be added to the parent validators list
 
     For example::
@@ -308,7 +312,10 @@ class RustDistributionSerializer(core_serializers.DistributionSerializer):
         return data
 
     class Meta:
-        fields = core_serializers.DistributionSerializer.Meta.fields + ("allow_uploads", "remote")
+        fields = core_serializers.DistributionSerializer.Meta.fields + (
+            "allow_uploads",
+            "remote",
+        )
         model = models.RustDistribution
 
 
@@ -329,7 +336,7 @@ class CargoTokenSerializer(core_serializers.ModelSerializer):
         read_only_fields = ("token", "last_used")
 
 
-class YankSerializer(serializers.Serializer):
+class RustPackageYankSerializer(serializers.Serializer):
     """Serializer for yank/unyank operations on a repository."""
 
     name = serializers.CharField(

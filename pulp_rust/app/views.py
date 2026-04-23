@@ -27,14 +27,14 @@ from pulpcore.plugin.util import get_domain
 
 from pulp_rust.app.auth import CargoTokenAuthentication
 from pulp_rust.app.models import (
-    RustContent,
     RustDistribution,
+    RustPackage,
     RustPackageYank,
     _strip_sparse_prefix,
 )
 from pulp_rust.app.serializers import (
     IndexRootSerializer,
-    RustContentSerializer,
+    RustPackageSerializer,
 )
 from pulp_rust.app.tasks import (
     apublish_package,
@@ -128,7 +128,7 @@ class ApiMixin:
     @staticmethod
     def get_content(repository_version):
         """Returns queryset of the content in this repository version."""
-        return RustContent.objects.filter(pk__in=repository_version.content)
+        return RustPackage.objects.filter(pk__in=repository_version.content)
 
     def get_rvc(self):
         """Takes the base_path and returns the repository_version and content."""
@@ -175,7 +175,7 @@ class CargoIndexApiViewSet(ApiMixin, ViewSet):
 
     @extend_schema(
         tags=["Cargo: Metadata"],
-        responses={200: RustContentSerializer},
+        responses={200: RustPackageSerializer},
         summary="Get package metadata",
     )
     def retrieve(self, request, path, **kwargs):
@@ -390,7 +390,7 @@ class CargoPublishApiView(APIView):
         canonical = canonicalize_crate_name(name)
         vers_base = strip_semver_build_metadata(vers)
         repo_version = distro.repository.latest_version()
-        if RustContent.objects.filter(
+        if RustPackage.objects.filter(
             pk__in=repo_version.content, canonical_name=canonical, vers=vers_base
         ).exists():
             return cargo_error(f"crate version `{name}@{vers}` is already uploaded")
@@ -495,7 +495,7 @@ class CargoDownloadApiView(APIView):
 
         canonical = canonicalize_crate_name(name)
         repo_version = distro.repository.latest_version()
-        if not RustContent.objects.filter(
+        if not RustPackage.objects.filter(
             pk__in=repo_version.content, canonical_name=canonical, vers=version
         ).exists():
             return HttpResponse(

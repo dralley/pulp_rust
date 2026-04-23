@@ -6,99 +6,197 @@ import pulpcore.app.util
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('core', '0106_alter_artifactdistribution_distribution_ptr_and_more'),
+        ("core", "0106_alter_artifactdistribution_distribution_ptr_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RustContent',
+            name="RustContent",
             fields=[
-                ('content_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='core.content')),
-                ('name', models.CharField(db_index=True, max_length=255)),
-                ('canonical_name', models.CharField(db_index=True, max_length=255)),
-                ('vers', models.CharField(db_index=True, max_length=64)),
-                ('cksum', models.CharField(db_index=True, max_length=64)),
-                ('features', models.JSONField(blank=True, default=dict)),
-                ('features2', models.JSONField(blank=True, default=dict, null=True)),
-                ('links', models.CharField(blank=True, max_length=255, null=True)),
-                ('rust_version', models.CharField(blank=True, max_length=32, null=True)),
-                ('v', models.IntegerField(default=1)),
-                ('_pulp_domain', models.ForeignKey(default=pulpcore.app.util.get_domain_pk, on_delete=django.db.models.deletion.PROTECT, to='core.domain')),
+                (
+                    "content_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="core.content",
+                    ),
+                ),
+                ("name", models.CharField(db_index=True, max_length=255)),
+                ("canonical_name", models.CharField(db_index=True, max_length=255)),
+                ("vers", models.CharField(db_index=True, max_length=64)),
+                ("cksum", models.CharField(db_index=True, max_length=64)),
+                ("features", models.JSONField(blank=True, default=dict)),
+                ("features2", models.JSONField(blank=True, default=dict, null=True)),
+                ("links", models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "rust_version",
+                    models.CharField(blank=True, max_length=32, null=True),
+                ),
+                ("v", models.IntegerField(default=1)),
+                (
+                    "_pulp_domain",
+                    models.ForeignKey(
+                        default=pulpcore.app.util.get_domain_pk,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="core.domain",
+                    ),
+                ),
             ],
             options={
-                'default_related_name': '%(app_label)s_%(model_name)s',
-                'unique_together': {('name', 'vers', 'cksum', '_pulp_domain')},
+                "default_related_name": "%(app_label)s_%(model_name)s",
+                "unique_together": {("name", "vers", "cksum", "_pulp_domain")},
             },
-            bases=('core.content',),
+            bases=("core.content",),
         ),
         migrations.CreateModel(
-            name='RustDistribution',
+            name="RustDistribution",
             fields=[
-                ('distribution_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='core.distribution')),
-                ('allow_uploads', models.BooleanField(default=False)),
+                (
+                    "distribution_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="core.distribution",
+                    ),
+                ),
+                ("allow_uploads", models.BooleanField(default=False)),
             ],
             options={
-                'default_related_name': '%(app_label)s_%(model_name)s',
+                "default_related_name": "%(app_label)s_%(model_name)s",
             },
-            bases=('core.distribution',),
+            bases=("core.distribution",),
         ),
         migrations.CreateModel(
-            name='RustRemote',
+            name="RustRemote",
             fields=[
-                ('remote_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='core.remote')),
+                (
+                    "remote_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="core.remote",
+                    ),
+                ),
             ],
             options={
-                'default_related_name': '%(app_label)s_%(model_name)s',
+                "default_related_name": "%(app_label)s_%(model_name)s",
             },
-            bases=('core.remote',),
+            bases=("core.remote",),
         ),
         migrations.CreateModel(
-            name='RustRepository',
+            name="RustRepository",
             fields=[
-                ('repository_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='core.repository')),
+                (
+                    "repository_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="core.repository",
+                    ),
+                ),
             ],
             options={
-                'default_related_name': '%(app_label)s_%(model_name)s',
+                "default_related_name": "%(app_label)s_%(model_name)s",
             },
-            bases=('core.repository',),
+            bases=("core.repository",),
         ),
         migrations.CreateModel(
-            name='RustDependency',
+            name="RustDependency",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('req', models.CharField(max_length=255)),
-                ('features', models.JSONField(blank=True, default=list)),
-                ('optional', models.BooleanField(default=False)),
-                ('default_features', models.BooleanField(default=True)),
-                ('target', models.CharField(blank=True, max_length=255, null=True)),
-                ('kind', models.CharField(choices=[('normal', 'Normal'), ('dev', 'Development'), ('build', 'Build')], default='normal', max_length=16)),
-                ('registry', models.CharField(blank=True, max_length=512, null=True)),
-                ('package', models.CharField(blank=True, max_length=255, null=True)),
-                ('content', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='dependencies', to='rust.rustcontent')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("req", models.CharField(max_length=255)),
+                ("features", models.JSONField(blank=True, default=list)),
+                ("optional", models.BooleanField(default=False)),
+                ("default_features", models.BooleanField(default=True)),
+                ("target", models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "kind",
+                    models.CharField(
+                        choices=[
+                            ("normal", "Normal"),
+                            ("dev", "Development"),
+                            ("build", "Build"),
+                        ],
+                        default="normal",
+                        max_length=16,
+                    ),
+                ),
+                ("registry", models.CharField(blank=True, max_length=512, null=True)),
+                ("package", models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "content",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="dependencies",
+                        to="rust.rustcontent",
+                    ),
+                ),
             ],
             options={
-                'verbose_name_plural': 'rust dependencies',
-                'default_related_name': '%(app_label)s_%(model_name)s',
-                'indexes': [models.Index(fields=['content', 'kind'], name='rust_rustde_content_a46e30_idx'), models.Index(fields=['name'], name='rust_rustde_name_6a2db4_idx')],
+                "verbose_name_plural": "rust dependencies",
+                "default_related_name": "%(app_label)s_%(model_name)s",
+                "indexes": [
+                    models.Index(
+                        fields=["content", "kind"],
+                        name="rust_rustde_content_a46e30_idx",
+                    ),
+                    models.Index(fields=["name"], name="rust_rustde_name_6a2db4_idx"),
+                ],
             },
         ),
         migrations.CreateModel(
-            name='RustPackageYank',
+            name="RustPackageYank",
             fields=[
-                ('content_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='core.content')),
-                ('name', models.CharField(db_index=True, max_length=255)),
-                ('vers', models.CharField(db_index=True, max_length=64)),
-                ('_pulp_domain', models.ForeignKey(default=pulpcore.app.util.get_domain_pk, on_delete=django.db.models.deletion.PROTECT, to='core.domain')),
+                (
+                    "content_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="core.content",
+                    ),
+                ),
+                ("name", models.CharField(db_index=True, max_length=255)),
+                ("vers", models.CharField(db_index=True, max_length=64)),
+                (
+                    "_pulp_domain",
+                    models.ForeignKey(
+                        default=pulpcore.app.util.get_domain_pk,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="core.domain",
+                    ),
+                ),
             ],
             options={
-                'default_related_name': '%(app_label)s_%(model_name)s',
-                'unique_together': {('name', 'vers', '_pulp_domain')},
+                "default_related_name": "%(app_label)s_%(model_name)s",
+                "unique_together": {("name", "vers", "_pulp_domain")},
             },
-            bases=('core.content',),
+            bases=("core.content",),
         ),
     ]

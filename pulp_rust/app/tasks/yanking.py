@@ -1,6 +1,6 @@
 from pulpcore.plugin.tasking import aadd_and_remove
 
-from pulp_rust.app.models import RustContent, RustPackageYank, RustRepository
+from pulp_rust.app.models import RustPackage, RustPackageYank, RustRepository
 from pulp_rust.app.utils import canonicalize_crate_name
 
 
@@ -15,7 +15,7 @@ async def ayank_package(repository_pk, name, vers):
     latest = await repository.alatest_version()
 
     # Verify the package version exists in this repository
-    exists = await RustContent.objects.filter(
+    exists = await RustPackage.objects.filter(
         pk__in=latest.content, canonical_name=name, vers=vers
     ).aexists()
     if not exists:

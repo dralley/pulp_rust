@@ -380,7 +380,7 @@ def test_cargo_publish_cross_repo_reuses_pull_through_content(
     admin_auth_headers,
 ):
     """Publishing a crate that was already cached via pull-through should reuse
-    the same global RustContent object.
+    the same global RustPackage object.
 
     Content in Pulp is shared within a domain. When a crate is first cached
     via pull-through and then published to a private registry, the publish
