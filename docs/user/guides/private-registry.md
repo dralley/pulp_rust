@@ -10,6 +10,11 @@ Rust packages.
 pulp rust repository create --name my-crates
 ```
 
+!!! note
+    A repository may be used for pull-through caching **or** for uploads, but not both. Pulp
+    rejects attempts to attach an upload distribution to a repository that is already used for
+    caching (and vice versa). Use separate repositories for caching and publishing.
+
 ## Create a Distribution
 
 A distribution makes the repository's content available to Cargo over HTTP. Set `--allow-uploads`
@@ -166,10 +171,10 @@ publishing `my-crate` when `my_crate` already exists in the same repository is r
 duplicate. Yank and unyank operations use the same matching.
 
 !!! tip "Separate Registries"
-    Keep private registries and public pull-through caches as separate distributions (and
-    preferably separate repositories). This makes it easy to audit which registries have
-    upstream access and reduces the risk of accidental misconfiguration. For additional
-    isolation or access control, they could be kept on entirely separate domains.
+    Pulp enforces that private registries and pull-through caches use separate repositories.
+    A repository that is a pull-through cache (targeted by a distribution with a `remote`, or
+    with its own `remote` set) cannot also accept uploads, and vice versa. This prevents
+    dependency-confusion attacks where uploaded content could override cached upstream content.
 
 ## Further Reading
 

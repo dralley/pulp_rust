@@ -261,6 +261,9 @@ class RustDistributionSerializer(core_serializers.DistributionSerializer):
         allow_uploads = data.get(
             "allow_uploads", self.instance.allow_uploads if self.instance else False
         )
+        repository = data.get("repository", self.instance.repository if self.instance else None)
+
+        # A single distribution cannot both cache from a remote and accept uploads.
         if remote and allow_uploads:
             raise serializers.ValidationError(
                 _(
@@ -268,6 +271,40 @@ class RustDistributionSerializer(core_serializers.DistributionSerializer):
                     "Use separate distributions for pull-through caching and publishing."
                 )
             )
+
+        # A single repository can't be used for both pull-through caching and uploads.
+        if repository:
+            repo = repository.cast()
+            sibling_distributions = models.RustDistribution.objects.filter(repository=repo)
+            if self.instance:
+                sibling_distributions = sibling_distributions.exclude(pk=self.instance.pk)
+
+            if allow_uploads:
+                if repo.remote_id:
+                    raise serializers.ValidationError(
+                        _(
+                            "This repository has a remote set for caching and cannot also be "
+                            "used for uploads. Use separate repositories for pull-through "
+                            "caching and publishing."
+                        )
+                    )
+                if sibling_distributions.exclude(remote=None).exists():
+                    raise serializers.ValidationError(
+                        _(
+                            "This repository is already used for pull-through caching by "
+                            "another distribution and cannot also be used for uploads. Use "
+                            "separate repositories for pull-through caching and publishing."
+                        )
+                    )
+
+            if remote and sibling_distributions.filter(allow_uploads=True).exists():
+                raise serializers.ValidationError(
+                    _(
+                        "This repository is already used for uploads by another distribution "
+                        "and cannot also be used for pull-through caching. Use separate "
+                        "repositories for pull-through caching and publishing."
+                    )
+                )
         return data
 
     class Meta:
