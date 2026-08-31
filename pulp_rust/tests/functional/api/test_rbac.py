@@ -21,9 +21,27 @@ class TestRepositoryRBAC:
         assert (b_list.count, c_list.count) == (0, 0)
 
         # Create — only creator (bob) can create
-        try_action(alice, rust_repo_api_client, "create", 403, {"name": str(uuid.uuid4())})
-        repo = try_action(bob, rust_repo_api_client, "create", 201, {"name": str(uuid.uuid4())})
-        try_action(charlie, rust_repo_api_client, "create", 403, {"name": str(uuid.uuid4())})
+        try_action(
+            alice,
+            rust_repo_api_client,
+            "create",
+            403,
+            {"name": str(uuid.uuid4())},
+        )
+        repo = try_action(
+            bob,
+            rust_repo_api_client,
+            "create",
+            201,
+            {"name": str(uuid.uuid4())},
+        )
+        try_action(
+            charlie,
+            rust_repo_api_client,
+            "create",
+            403,
+            {"name": str(uuid.uuid4())},
+        )
 
         # Read — alice has model-level viewer, bob is owner (creation hook), charlie has nothing
         try_action(alice, rust_repo_api_client, "read", 200, repo.pulp_href)

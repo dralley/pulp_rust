@@ -54,6 +54,32 @@ log = logging.getLogger(__name__)
 BASE_CONTENT_URL = urljoin(settings.CONTENT_ORIGIN, settings.CONTENT_PATH_PREFIX)
 
 
+def cargo_error(detail, status=400):
+    """Build a Cargo-style JSON error response."""
+    return HttpResponse(
+        json.dumps({"errors": [{"detail": detail}]}),
+        content_type="application/json",
+        status=status,
+    )
+
+
+def repository_write_error(distro):
+    """Return a Cargo error response if the distribution can't be written to, else None.
+
+    Write operations (publish, yank, unyank) require the distribution to point at a
+    repository. A distribution serving a fixed repository_version is read-only, and one
+    with neither has nothing to write to.
+    """
+    if distro.repository:
+        return None
+    if distro.repository_version:
+        return cargo_error(
+            "This distribution serves a fixed repository version and cannot be modified.",
+            status=400,
+        )
+    return cargo_error("No repository associated with this distribution", status=404)
+
+
 class PlainTextRenderer(BaseRenderer):
     """Renderer for text/plain responses (Cargo sends Accept: text/plain)."""
 
@@ -320,14 +346,6 @@ class CargoPublishApiView(APIView):
             RustDistribution, base_path=self.kwargs["repo"], pulp_domain=get_domain()
         )
 
-    @staticmethod
-    def _error_response(detail, status=400):
-        return HttpResponse(
-            json.dumps({"errors": [{"detail": detail}]}),
-            content_type="application/json",
-            status=status,
-        )
-
     def put(self, request, **kwargs):
         """
         Handle ``cargo publish`` requests.
@@ -339,33 +357,31 @@ class CargoPublishApiView(APIView):
         distro = self.get_distribution()
 
         if not request.user.has_perm("rust.publish_rustdistribution", distro):
-            return self._error_response("insufficient permissions", status=403)
+            return cargo_error("insufficient permissions", status=403)
 
         if not distro.allow_uploads:
-            return self._error_response("this registry does not allow uploads", status=403)
+            return cargo_error("this registry does not allow uploads", status=403)
 
-        if not distro.repository:
-            return self._error_response(
-                "no repository associated with this distribution", status=404
-            )
+        if error := repository_write_error(distro):
+            return error
 
         try:
             metadata, crate_bytes = parse_cargo_publish_body(request.body)
         except (struct.error, json.JSONDecodeError, UnicodeDecodeError):
-            return self._error_response("invalid publish request body")
+            return cargo_error("invalid publish request body")
 
         name = metadata.get("name")
         vers = metadata.get("vers")
         if not name or not vers:
-            return self._error_response("missing required fields: name, vers")
+            return cargo_error("missing required fields: name, vers")
 
         error = validate_crate_name(name)
         if error:
-            return self._error_response(error)
+            return cargo_error(error)
 
         error = validate_crate_version(vers)
         if error:
-            return self._error_response(error)
+            return cargo_error(error)
 
         # Check for duplicates using canonical name form to prevent confusable
         # packages (e.g. "my-crate" vs "my_crate" or "MyCrate" vs "mycrate").
@@ -377,7 +393,7 @@ class CargoPublishApiView(APIView):
         if RustContent.objects.filter(
             pk__in=repo_version.content, canonical_name=canonical, vers=vers_base
         ).exists():
-            return self._error_response(f"crate version `{name}@{vers}` is already uploaded")
+            return cargo_error(f"crate version `{name}@{vers}` is already uploaded")
 
         # Write the .crate bytes to a temp file — raw bytes can't be passed
         # through dispatch() because task kwargs are stored as JSON.
@@ -427,14 +443,6 @@ class CargoDownloadApiView(APIView):
             return [IsAuthenticated()]
         return []
 
-    @staticmethod
-    def _error_response(detail, status=400):
-        return HttpResponse(
-            json.dumps({"errors": [{"detail": detail}]}),
-            content_type="application/json",
-            status=status,
-        )
-
     def get_full_path(self, base_path, pulp_domain=None):
         if settings.DOMAIN_ENABLED:
             domain = pulp_domain or get_domain()
@@ -481,9 +489,9 @@ class CargoDownloadApiView(APIView):
 
         distro = self.get_distribution()
         if not request.user.has_perm("rust.yank_rustdistribution", distro):
-            return self._error_response("insufficient permissions", status=403)
-        if not distro.repository:
-            raise Http404("No repository associated with this distribution")
+            return cargo_error("insufficient permissions", status=403)
+        if error := repository_write_error(distro):
+            return error
 
         canonical = canonicalize_crate_name(name)
         repo_version = distro.repository.latest_version()
@@ -523,9 +531,9 @@ class CargoDownloadApiView(APIView):
 
         distro = self.get_distribution()
         if not request.user.has_perm("rust.yank_rustdistribution", distro):
-            return self._error_response("insufficient permissions", status=403)
-        if not distro.repository:
-            raise Http404("No repository associated with this distribution")
+            return cargo_error("insufficient permissions", status=403)
+        if error := repository_write_error(distro):
+            return error
 
         task = dispatch(
             aunyank_package,
